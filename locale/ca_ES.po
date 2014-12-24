@@ -2,10 +2,14 @@
 msgid ""
 msgstr "Content-Type: text/plain; charset=utf-8\n"
 
-msgctxt "selection:sale.line,type:"
-msgid "Subsubtotal"
-msgstr "Subsubtotal"
-
 msgctxt "selection:account.invoice.line,type:"
 msgid "Subtitle"
 msgstr "Subtítol"
+
+msgctxt "selection:account.invoice.line,type:"
+msgid "Total"
+msgstr "Total"
+
+msgctxt "selection:sale.line,type:"
+msgid "Subsubtotal"
+msgstr "Subsubtotal"
