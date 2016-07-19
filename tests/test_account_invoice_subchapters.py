@@ -1,66 +1,63 @@
 # The COPYRIGHT file at the top level of this repository contains the full
 # copyright notices and license terms.
-import doctest
 import unittest
 from decimal import Decimal
 
 import trytond.tests.test_tryton
-from trytond.tests.test_tryton import test_depends
-from trytond.tests.test_tryton import POOL, DB_NAME, USER, CONTEXT
-from trytond.transaction import Transaction
+from trytond.pool import Pool
+from trytond.tests.test_tryton import ModuleTestCase, with_transaction
+
+from trytond.modules.company.tests import create_company, set_company
+from trytond.modules.account.tests import create_chart, get_fiscalyear
+from trytond.modules.account_invoice.tests import set_invoice_sequences
 
 
-class TestCase(unittest.TestCase):
+class TestCase(ModuleTestCase):
     'Test module'
+    module = 'account_invoice_subchapters'
 
-    def setUp(self):
-        trytond.tests.test_tryton.install_module('account_invoice_subchapters')
-        self.account = POOL.get('account.account')
-        self.company = POOL.get('company.company')
-        self.invoice = POOL.get('account.invoice')
-        self.invoice_line = POOL.get('account.invoice.line')
-        self.journal = POOL.get('account.journal')
-        self.party = POOL.get('party.party')
-        self.payment_term = POOL.get('account.invoice.payment_term')
-        self.user = POOL.get('res.user')
-
-    def test0006depends(self):
-        'Test depends'
-        test_depends()
-
+    @with_transaction()
     def test0010subsubtotal_amount(self):
         'Test subsubtotal line amount'
-        with Transaction().start(DB_NAME, USER, context=CONTEXT):
-            company, = self.company.search([
-                    ('rec_name', '=', 'Dunder Mifflin'),
-                    ])
-            self.user.write([self.user(USER)], {
-                'main_company': company.id,
-                'company': company.id,
-                })
+        pool = Pool()
+        Account = pool.get('account.account')
+        PaymentTerm = pool.get('account.invoice.payment_term')
+        Invoice = pool.get('account.invoice')
+        InvoiceLine = pool.get('account.invoice.line')
+        Journal = pool.get('account.journal')
+        Party = pool.get('party.party')
 
-            journal, = self.journal.search([
+        # Create Company
+        company = create_company()
+        with set_company(company):
+            # Create Chart and Fiscalyear
+            create_chart(company)
+            fiscalyear = get_fiscalyear(company)
+            fiscalyear = set_invoice_sequences(fiscalyear)
+            fiscalyear.save()
+            fiscalyear.create_period([fiscalyear])
+            journal, = Journal.search([
                     ('code', '=', 'REV'),
                     ])
-            receivable, = self.account.search([
-                ('kind', '=', 'receivable'),
-                ('company', '=', company.id),
-                ])
-            revenue, = self.account.search([
-                ('kind', '=', 'revenue'),
-                ('company', '=', company.id),
-                ])
-            payment_term, = self.payment_term.create([{
-                        'name': 'Payment Term',
-                        'lines': [
-                            ('create', [{
-                                        'sequence': 0,
-                                        'type': 'remainder',
-                                        'months': 0,
-                                        'days': 0,
-                                        }])]
+            revenue, = Account.search([
+                    ('kind', '=', 'revenue'),
+                    ])
+            receivable, = Account.search([
+                    ('kind', '=', 'receivable'),
+                    ])
+            expense, = Account.search([
+                    ('kind', '=', 'expense'),
+                    ])
+            payable, = Account.search([
+                    ('kind', '=', 'payable'),
+                    ])
+
+            payment_term, = PaymentTerm.create([{
+                        'name': 'Direct',
+                        'lines': [('create', [{'type': 'remainder'}])]
                         }])
-            customer, = self.party.create([{
+
+            customer, = Party.create([{
                         'name': 'customer',
                         'addresses': [
                             ('create', [{}]),
@@ -70,9 +67,9 @@ class TestCase(unittest.TestCase):
                         }])
 
             def create_invoice():
-                invoice = self.invoice()
+                invoice = Invoice()
                 invoice.company = company
-                invoice.type = 'out_invoice'
+                invoice.type = 'out'
                 invoice.party = customer
                 invoice.invoice_address = customer.addresses[0]
                 invoice.currency = company.currency
@@ -83,7 +80,7 @@ class TestCase(unittest.TestCase):
                 return invoice
 
             def create_invoice_line(invoice, line_type):
-                invoice_line = self.invoice_line()
+                invoice_line = InvoiceLine()
                 invoice.lines = list(invoice.lines) + [invoice_line]
                 invoice_line.company = company
                 invoice_line.type = line_type
@@ -177,13 +174,5 @@ class TestCase(unittest.TestCase):
 
 def suite():
     suite = trytond.tests.test_tryton.suite()
-    from trytond.modules.company.tests import test_company
-    for test in test_company.suite():
-        if test not in suite:
-            suite.addTest(test)
-    from trytond.modules.account.tests import test_account
-    for test in test_account.suite():
-        if test not in suite and not isinstance(test, doctest.DocTestCase):
-            suite.addTest(test)
     suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestCase))
     return suite
