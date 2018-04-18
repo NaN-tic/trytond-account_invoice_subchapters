@@ -6,7 +6,7 @@ from trytond.pool import PoolMeta
 from trytond.pyson import Eval
 
 __all__ = ['InvoiceLine']
-__metaclass__ = PoolMeta
+
 
 _ZERO = Decimal('0.0')
 _NEW_TYPES = [
@@ -18,6 +18,7 @@ _NEW_TYPES = [
 
 class InvoiceLine:
     __name__ = 'account.invoice.line'
+    __metaclass__ = PoolMeta
 
     @classmethod
     def __setup__(cls):
