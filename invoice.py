@@ -16,9 +16,8 @@ _NEW_TYPES = [
     ]
 
 
-class InvoiceLine:
+class InvoiceLine(metaclass=PoolMeta):
     __name__ = 'account.invoice.line'
-    __metaclass__ = PoolMeta
 
     @classmethod
     def __setup__(cls):
