@@ -1,19 +1,18 @@
-# The COPYRIGHT file at the top level of this repository contains the full
-# copyright notices and license terms.
-import unittest
+
+# This file is part of Tryton.  The COPYRIGHT file at the top level of
+# this repository contains the full copyright notices and license terms.
 from decimal import Decimal
 
-import trytond.tests.test_tryton
 from trytond.pool import Pool
 from trytond.tests.test_tryton import ModuleTestCase, with_transaction
 
-from trytond.modules.company.tests import create_company, set_company
+from trytond.modules.company.tests import create_company, set_company, CompanyTestMixin
 from trytond.modules.account.tests import create_chart, get_fiscalyear
 from trytond.modules.account_invoice.tests import set_invoice_sequences
 
 
-class TestCase(ModuleTestCase):
-    'Test module'
+class AccountInvoiceSubchaptersTestCase(CompanyTestMixin, ModuleTestCase):
+    'Test AccountInvoiceSubchapters module'
     module = 'account_invoice_subchapters'
 
     @with_transaction()
@@ -172,7 +171,4 @@ class TestCase(ModuleTestCase):
             self.assertEqual(invoice4.lines[-1].amount, Decimal('60'))
 
 
-def suite():
-    suite = trytond.tests.test_tryton.suite()
-    suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestCase))
-    return suite
+del ModuleTestCase
