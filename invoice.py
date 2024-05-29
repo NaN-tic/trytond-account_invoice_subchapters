@@ -8,7 +8,7 @@ from trytond.pyson import Eval
 __all__ = ['InvoiceLine']
 
 
-_ZERO = Decimal('0.0')
+_ZERO = Decimal(0)
 _NEW_TYPES = [
     ('total', 'Total'),
     ('subsubtotal', 'Subsubtotal'),
