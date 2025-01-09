@@ -40,16 +40,20 @@ class AccountInvoiceSubchaptersTestCase(CompanyTestMixin, ModuleTestCase):
                     ])
             revenue, = Account.search([
                     ('type.revenue', '=', True),
-                    ])
+                    ('closed', '!=', True),
+                    ], limit=1)
             receivable, = Account.search([
                     ('type.receivable', '=', True),
-                    ])
+                    ('closed', '!=', True),
+                    ], limit=1)
             expense, = Account.search([
                     ('type.expense', '=', True),
-                    ])
+                    ('closed', '!=', True),
+                    ], limit=1)
             payable, = Account.search([
                     ('type.payable', '=', True),
-                    ])
+                    ('closed', '!=', True),
+                    ], limit=1)
 
             payment_term, = PaymentTerm.create([{
                         'name': 'Direct',
